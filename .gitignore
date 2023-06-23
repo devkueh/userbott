@@ -1,160 +1,158 @@
-# Byte-compiled / optimized / DLL files
-__pycache__/
-*.py[cod]
-*$py.class
+__version__ = (1, 0, 6)
+#                _             __  __           _       _                
+#      /\       | |           |  \/  |         | |     | |               
+#     /  \   ___| |_ _ __ ___ | \  / | ___   __| |_   _| | ___  ___      
+#    / /\ \ / __| __| '__/ _ \| |\/| |/ _ \ / _` | | | | |/ _ \/ __|     
+#   / ____ \\__ \ |_| | | (_) | |  | | (_) | (_| | |_| | |  __/\__ \     
+#  /_/    \_\___/\__|_|  \___/|_|  |_|\___/ \__,_|\__,_|_|\___||___/     
+#                                                                        
+#                         © Copyright 2023                             
+#                                                                        
+#                https://t.me/Den4ikSuperOstryyPer4ik                    
+#                              and                                       
+#                      https://t.me/ToXicUse                             
+#                                                                         
+#                 🔒 Licensed under the GNU AGPLv3                       
+#             https://www.gnu.org/licenses/agpl-3.0.html                 
+#     
+# meta developer: @AstroModules
+# meta banner: https://0x0.st/Hom5.png
 
-# C extensions
-*.so
+from .. import loader, utils
+from telethon.tl.types import Message
 
-# Distribution / packaging
-.Python
-build/
-develop-eggs/
-dist/
-downloads/
-eggs/
-.eggs/
-lib/
-lib64/
-parts/
-sdist/
-var/
-wheels/
-share/python-wheels/
-*.egg-info/
-.installed.cfg
-*.egg
-MANIFEST
+import random
+import requests
 
-# PyInstaller
-#  Usually these files are written by a python script from a template
-#  before PyInstaller builds the exe, so as to inject date/other infos into it.
-*.manifest
-*.spec
+class AstroWeatherMod(loader.Module):
+	'''Модуль для получения информации о погоде в Вашем городе, в красивом формате'''
 
-# Installer logs
-pip-log.txt
-pip-delete-this-directory.txt
+	strings = {
+		'name': 'AstroWeather',
+		'error': '<emoji document_id=5447644880824181073>⚠️</emoji> <b>Ошибка</b>',
+		'api_error': (
+			'<emoji document_id=5240241223632954241>🚫</emoji> <b>Вы не указали API ключ</b>!\n'
+			'<emoji document_id=5210956306952758910>👀</emoji> <code>Пожалуйста, укажите его в конфиге ниже</code>'
+		),
+		'search': '{} <b>Поиск информации о погоде в городе</b> <code>{}</code>..'
+	}
 
-# Unit test / coverage reports
-htmlcov/
-.tox/
-.nox/
-.coverage
-.coverage.*
-.cache
-nosetests.xml
-coverage.xml
-*.cover
-*.py,cover
-.hypothesis/
-.pytest_cache/
-cover/
+	async def text(self, temperature: int, veter: int, sky, hum, city, moji):
+		'''text rendering'''
 
-# Translations
-*.mo
-*.pot
+		skys = {
+			"Clear": "Чистое",
+			"Mist": "Туман",
+			"Clouds": "Облачно", 
+			"Rain": "Дождь", 
+			"Snow": "Снег"
+		}
+		if sky in skys:
+			sky = skys[sky]
 
-# Django stuff:
-*.log
-local_settings.py
-db.sqlite3
-db.sqlite3-journal
+		if temperature > 0:
+			t_emoji = '<emoji document_id=5204204137327111088>🔥</emoji>'
+		if temperature <= 0:
+			t_emoji = '<emoji document_id=5267186302259835638>❄️</emoji>'
 
-# Flask stuff:
-instance/
-.webassets-cache
+		if veter < 15:
+			v_emoji = '<emoji document_id=5447183459602669338>📉</emoji>'
+		if veter >= 15:
+			v_emoji = '<emoji document_id=5449683594425410231>🔼</emoji>'
 
-# Scrapy stuff:
-.scrapy
+		r_emoji = random.choice([
+			'<emoji document_id=5208554136039073738>🌙</emoji>',
+			'<emoji document_id=5444932797955317203>🐾</emoji>',
+			'<emoji document_id=5458585073060160944>🍀</emoji>',
+			'<emoji document_id=5206587423269593472>🌈</emoji>',
+			'<emoji document_id=5413390588198265552>💤</emoji>',
+			'<emoji document_id=5435981940081566607>🌺</emoji>'
+		])
+		sity_emoji = random.choice([
+			'<emoji document_id=5416117059207572332>⏩</emoji>', 
+			'<emoji document_id=5447410659077661506>🌐</emoji>'
+		])
 
-# Sphinx documentation
-docs/_build/
+		weather = (
+			f'{r_emoji} <b>Погода в {city.title()}:</b>\n\n'
+			f'{sity_emoji} <b>Город:</b> <code>{city.title()}</code>\n'
+			f'{t_emoji} <b>Температура:</b> <code>{temperature}°C</code>\n'
+			f'<emoji document_id=5192891734635322759>💦</emoji> <b>Влажность:</b> <code>{hum}%</code>\n'
+			f'{v_emoji} <b>Скорость ветра:</b> <code>{veter}м/с</code>\n'
+			f'{moji} <b>Небо:</b> <code>{sky}</code>'
+		)
+		return weather
 
-# PyBuilder
-.pybuilder/
-target/
 
-# Jupyter Notebook
-.ipynb_checkpoints
+	async def client_ready(self, client, db):
+		self.client = client
+		self.db = db
 
-# IPython
-profile_default/
-ipython_config.py
+	def __init__(self):
+		self.config = loader.ModuleConfig(
+			loader.ConfigValue(
+				'api_key',
+				None,
+				lambda: 'Api key. Получить можно по туториалу https://t.me/help_code/12',
+				validator=loader.validators.Hidden()
+			)
+		)
 
-# pyenv
-#   For a library or package, you might want to ignore these files since the code is
-#   intended to run in multiple environments; otherwise, check them in:
-# .python-version
+	async def get_weather(self, city_id):
+		try:
+			api_key = self.config['api_key']
+			result = requests.get("http://api.openweathermap.org/data/2.5/weather", params={'q': city_id, 'units': 'metric', 'APPID': api_key})
+			result_json = result.json()
+			if result_json["cod"] != 200:
+				return
 
-# pipenv
-#   According to pypa/pipenv#598, it is recommended to include Pipfile.lock in version control.
-#   However, in case of collaboration, if having platform-specific dependencies or dependencies
-#   having no cross-platform support, pipenv may install dependencies that don't work, or not
-#   install all needed dependencies.
-#Pipfile.lock
+			weather = {}
+			weather["temp"] = round(result_json["main"]["temp"])
+			weather["hum"] = result_json["main"]["humidity"]
+			weather["wind_speed"] = result_json["wind"]["speed"]
+			weather["sky"] = result_json["weather"][0]["main"]
+			if weather["sky"] == 'Clouds':
+				weather["sky_emoji"] = '<emoji document_id=5391322797123314747>☁️</emoji>'
+			if weather["sky"] == 'Rain':
+				weather["sky_emoji"] = '<emoji document_id=5224681716760715555>🌧️</emoji>'
+			if weather["sky"] == 'Clear':
+				weather["sky_emoji"] = '<emoji document_id=5262761021361104549>☀️</emoji>'
+			if weather["sky"] == 'Mist':
+				weather["sky_emoji"] = '<emoji document_id=5453984836668627018>🌫️</emoji>'
+			if weather["sky"] == 'Snow':
+				weather["sky_emoji"] = '<emoji document_id=5282833267551117457>🌨️</emoji>'
 
-# poetry
-#   Similar to Pipfile.lock, it is generally recommended to include poetry.lock in version control.
-#   This is especially recommended for binary packages to ensure reproducibility, and is more
-#   commonly ignored for libraries.
-#   https://python-poetry.org/docs/basic-usage/#commit-your-poetrylock-file-to-version-control
-#poetry.lock
+			return weather
+		except:
+			return
 
-# pdm
-#   Similar to Pipfile.lock, it is generally recommended to include pdm.lock in version control.
-#pdm.lock
-#   pdm stores project-wide configurations in .pdm.toml, but it is recommended to not include it
-#   in version control.
-#   https://pdm.fming.dev/#use-with-ide
-.pdm.toml
-
-# PEP 582; used by e.g. github.com/David-OConnor/pyflow and github.com/pdm-project/pdm
-__pypackages__/
-
-# Celery stuff
-celerybeat-schedule
-celerybeat.pid
-
-# SageMath parsed files
-*.sage.py
-
-# Environments
-.env
-.venv
-env/
-venv/
-ENV/
-env.bak/
-venv.bak/
-
-# Spyder project settings
-.spyderproject
-.spyproject
-
-# Rope project settings
-.ropeproject
-
-# mkdocs documentation
-/site
-
-# mypy
-.mypy_cache/
-.dmypy.json
-dmypy.json
-
-# Pyre type checker
-.pyre/
-
-# pytype static type analyzer
-.pytype/
-
-# Cython debug symbols
-cython_debug/
-
-# PyCharm
-#  JetBrains specific template is maintained in a separate JetBrains.gitignore that can
-#  be found at https://github.com/github/gitignore/blob/main/Global/JetBrains.gitignore
-#  and can be added to the global gitignore or merged into this file.  For a more nuclear
-#  option (not recommended) you can uncomment the following to ignore the entire idea folder.
-#.idea/
+	@loader.command()
+	async def aw(self, message):
+		'''<город> - узнать погоду в указанном городе'''
+		search_moji = random.choice([
+			'<emoji document_id=5443038326535759644>💬</emoji>',
+			'<emoji document_id=5452069934089641166>🔎</emoji>'
+		])
+		city = utils.get_args_raw(message)
+		city = city.title()
+		getting = await utils.answer(message, self.strings('search').format(search_moji, city))
+		
+		if self.config['api_key'] == None:
+			await utils.answer(getting, self.strings('api_error'))
+			msg = await self.client.send_message(message.chat.id, '<b>Открываю конфиг...</b>')
+			await self.allmodules.commands["config"](
+				await utils.answer(msg, f"{self.get_prefix()}config AstroWeather")
+			)
+			return
+		
+		try:
+			dict_wea = await self.get_weather(city)
+			temp = dict_wea["temp"]
+			hum = dict_wea["hum"]
+			speed = dict_wea["wind_speed"]
+			sky = dict_wea["sky"]
+			moji = dict_wea["sky_emoji"]
+			text = await self.text(temp, speed, sky, hum, city, moji)
+			await utils.answer(getting, text)
+		except:
+			await utils.answer(getting, self.strings('error'))
