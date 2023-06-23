@@ -8,14 +8,14 @@ __version__ = (1, 0, 6)
 #                                                                        
 #                         © Copyright 2023                             
 #                                                                        
-#                https://t.me/Den4ikSuperOstryyPer4ik                    
+#                https://t.me/+r9kgGapyI84wMzdi                    
 #                              and                                       
-#                      https://t.me/ToXicUse                             
+#                      https://t.me/HaXaOg                             
 #                                                                         
 #                 🔒 Licensed under the GNU AGPLv3                       
 #             https://www.gnu.org/licenses/agpl-3.0.html                 
 #     
-# meta developer: @AstroModules
+# meta developer: @kueh1
 # meta banner: https://0x0.st/Hom5.png
 
 from .. import loader, utils
@@ -111,15 +111,15 @@ class AstroWeatherMod(loader.Module):
 			weather["hum"] = result_json["main"]["humidity"]
 			weather["wind_speed"] = result_json["wind"]["speed"]
 			weather["sky"] = result_json["weather"][0]["main"]
-			if weather["sky"] == 'Clouds':
+			if weather["sky"] == 'Облока':
 				weather["sky_emoji"] = '<emoji document_id=5391322797123314747>☁️</emoji>'
-			if weather["sky"] == 'Rain':
+			if weather["sky"] == 'Дождь кайф':
 				weather["sky_emoji"] = '<emoji document_id=5224681716760715555>🌧️</emoji>'
-			if weather["sky"] == 'Clear':
+			if weather["sky"] == 'Солнечный, уфф жара жара':
 				weather["sky_emoji"] = '<emoji document_id=5262761021361104549>☀️</emoji>'
-			if weather["sky"] == 'Mist':
+			if weather["sky"] == 'Туман еба':
 				weather["sky_emoji"] = '<emoji document_id=5453984836668627018>🌫️</emoji>'
-			if weather["sky"] == 'Snow':
+			if weather["sky"] == 'Снег, жаль':
 				weather["sky_emoji"] = '<emoji document_id=5282833267551117457>🌨️</emoji>'
 
 			return weather
