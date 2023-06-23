@@ -141,7 +141,7 @@ class AstroWeatherMod(loader.Module):
 			await utils.answer(getting, self.strings('api_error'))
 			msg = await self.client.send_message(message.chat.id, '<b>Открываю конфиг...</b>')
 			await self.allmodules.commands["config"](
-				await utils.answer(msg, f"{self.get_prefix()}config AstroWeather")
+				await utils.answer(msg, f"{self.get_prefix()}config DevWeather)
 			)
 			return
 		
